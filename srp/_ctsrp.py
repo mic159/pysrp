@@ -309,7 +309,7 @@ def HNxorg( hash_class, N, g ):
 
 
 
-def get_ngk( hash_class, ng_type, n_hex, g_hex ):
+def get_ngk( hash_class, ng_type, n_hex, g_hex, k_hex=None ):
     if ng_type < NG_CUSTOM:
         n_hex, g_hex = _ng_const[ ng_type ]
     N = BN_new()
@@ -318,7 +318,10 @@ def get_ngk( hash_class, ng_type, n_hex, g_hex ):
 
     BN_hex2bn( N, n_hex )
     BN_hex2bn( g, g_hex )
-    H_bn_bn(hash_class, k, N, g)
+    if k_hex:
+        BN_hex2bn( k, k_hex )
+    else:
+        H_bn_bn(hash_class, k, N, g)
 
     return N, g, k
 
@@ -472,7 +475,7 @@ class Verifier (object):
 
 
 class User (object):
-    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, bytes_a=None):
+    def __init__(self, username, password, hash_alg=SHA1, ng_type=NG_2048, n_hex=None, g_hex=None, k_hex=None, bytes_a=None):
         if ng_type == NG_CUSTOM and (n_hex is None or g_hex is None):
             raise ValueError("Both n_hex and g_hex are required when ng_type = NG_CUSTOM")
         if bytes_a and len(bytes_a) != 32:
@@ -497,7 +500,7 @@ class User (object):
         self._authenticated = False
 
         hash_class = _hash_map[ hash_alg ]
-        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex )
+        N,g,k      = get_ngk( hash_class, ng_type, n_hex, g_hex, k_hex )
 
         self.hash_class = hash_class
         self.N          = N
